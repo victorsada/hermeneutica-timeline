@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Historia de las Escuelas Hermenéuticas</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        background: #f5f3f0;
+        color: #1a1a1a;
+      }
+
+      /* ── Header ── */
+      .site-header {
+        background: linear-gradient(160deg, #1a2c45 0%, #243b55 100%);
+        padding: 18px 24px 14px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+      }
+      .site-header h1 {
+        font-family: Georgia, serif;
+        font-size: clamp(1rem, 2.5vw, 1.5rem);
+        color: #fff;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+        font-weight: 700;
+      }
+      .site-header .subtitle {
+        font-size: 0.72rem;
+        color: #7fa8c9;
+        font-style: italic;
+        margin-bottom: 10px;
+      }
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 0;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #a8c8e8;
+      }
+      .legend-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+
+      /* ── Floating year badge ── */
+      #year-badge {
+        position: fixed;
+        top: 18px;
+        right: 20px;
+        background: rgba(26, 44, 69, 0.9);
+        color: #fff;
+        font-size: 0.78rem;
+        font-family: "Courier New", monospace;
+        padding: 5px 14px;
+        border-radius: 20px;
+        z-index: 1000;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+
+      /* ── Timeline wrapper ── */
+      #timeline {
+        position: relative;
+        max-width: 900px;
+        margin: 0 auto;
+        padding-bottom: 80px;
+      }
+
+      /* ── Vertical axis ── */
+      .axis-line {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 3px;
+        transform: translateX(-50%);
+        background: linear-gradient(to bottom, #2c3e50, #34495e);
+        z-index: 1;
+      }
+
+      /* ── Era bars (colored duration indicators on axis) ── */
+      .era-bar {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 11px;
+        border-radius: 3px;
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0.38;
+        transition: opacity 0.3s;
+      }
+      .era-bar:hover {
+        opacity: 0.65;
+      }
+
+      /* ── Year markers ── */
+      .yr-marker {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .yr-tick {
+        height: 2px;
+        background: #5d7a9a;
+        border-radius: 1px;
+        flex-shrink: 0;
+      }
+      .yr-label {
+        position: absolute;
+        right: 100%;
+        padding-right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.58rem;
+        color: #bbbbbb;
+        white-space: nowrap;
+        font-family: "Courier New", monospace;
+        text-align: right;
+      }
+
+      /* ── School card ── */
+      .school-card {
+        position: absolute;
+        width: 215px;
+        z-index: 10;
+      }
+      .school-card.left {
+        right: calc(50% + 80px);
+      }
+      .school-card.right {
+        left: calc(50% + 80px);
+      }
+
+      /* Horizontal connector */
+      .connector {
+        position: absolute;
+        top: 25px;
+        height: 2px;
+        width: 80px;
+        border-radius: 1px;
+        z-index: 4;
+      }
+      .school-card.left .connector {
+        right: -80px;
+      }
+      .school-card.right .connector {
+        left: -80px;
+      }
+
+      /* Dot on axis */
+      .node-dot {
+        position: absolute;
+        top: 19px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #f5f3f0;
+        border: 2.5px solid;
+        z-index: 15;
+        transition: transform 0.2s;
+      }
+      .school-card.left .node-dot {
+        right: -86px;
+      }
+      .school-card.right .node-dot {
+        left: -86px;
+      }
+      .school-card:hover .node-dot {
+        transform: scale(1.35);
+      }
+
+      /* Card box */
+      .card-box {
+        background: #fff;
+        border-radius: 9px;
+        padding: 11px 13px 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+        cursor: pointer;
+        transition:
+          box-shadow 0.22s ease,
+          transform 0.22s ease,
+          background 0.22s ease;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        overflow: hidden;
+      }
+      .card-box:hover {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.13);
+        transform: translateY(-2px);
+      }
+      .card-box.open {
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+        transform: translateY(-2px);
+      }
+
+      .card-tag {
+        font-size: 0.58rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        margin-bottom: 4px;
+      }
+      .card-title {
+        font-size: 0.83rem;
+        font-weight: 700;
+        color: #111;
+        line-height: 1.25;
+        margin-bottom: 4px;
+      }
+      .card-period {
+        font-size: 0.63rem;
+        color: #aaa;
+        font-family: "Courier New", monospace;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      /* Expandable details */
+      .card-details {
+        overflow: hidden;
+        max-height: 0;
+        transition:
+          max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+          margin-top 0.3s ease;
+        margin-top: 0;
+      }
+      .card-box.open .card-details {
+        max-height: 700px;
+        margin-top: 10px;
+      }
+      .detail-divider {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.07);
+        margin-bottom: 8px;
+      }
+      .person-chips-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 8px;
+      }
+      .person-chip {
+        display: inline-block;
+        font-size: 0.6rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+        letter-spacing: 0.03em;
+      }
+      .detail-prose {
+        font-size: 0.72rem;
+        line-height: 1.65;
+        color: #444;
+        margin-bottom: 8px;
+      }
+      .detail-problem {
+        font-size: 0.68rem;
+        line-height: 1.55;
+        color: #555;
+        font-style: italic;
+        padding: 6px 10px;
+        border-radius: 5px;
+        border-left: 3px solid;
+        margin-top: 4px;
+      }
+
+      /* Toggle arrow */
+      .toggle-arrow {
+        float: right;
+        font-size: 0.65rem;
+        color: #bbb;
+        margin-top: 1px;
+        transition: transform 0.3s;
+        display: inline-block;
+      }
+      .card-box.open .toggle-arrow {
+        transform: rotate(180deg);
+      }
+
+      /* ── Era zone backgrounds ── */
+      .era-zone {
+        position: absolute;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ── Ver más button ── */
+      .ver-mas-btn {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: inherit;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        letter-spacing: 0.04em;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .ver-mas-btn:hover {
+        opacity: 1;
+      }
+
+      /* ── Modal overlay ── */
+      #modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 20, 35, 0.55);
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        backdrop-filter: blur(3px);
+      }
+      #modal-overlay.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #modal-box {
+        background: #fff;
+        max-width: 580px;
+        width: 100%;
+        max-height: 82vh;
+        overflow-y: auto;
+        border-radius: 14px;
+        padding: 28px 32px 32px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        transform: translateY(14px);
+        transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border-left: 5px solid #ccc;
+        position: relative;
+      }
+      #modal-overlay.open #modal-box {
+        transform: translateY(0);
+      }
+      #modal-close {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #aaa;
+        cursor: pointer;
+        line-height: 1;
+        padding: 4px 6px;
+        border-radius: 6px;
+        transition:
+          color 0.15s,
+          background 0.15s;
+      }
+      #modal-close:hover {
+        color: #333;
+        background: #f0f0f0;
+      }
+      .modal-tag {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .modal-title {
+        font-family: Georgia, serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 3px;
+        padding-right: 28px;
+      }
+      .modal-period {
+        font-size: 0.68rem;
+        color: #aaa;
+        font-family: "Courier New", monospace;
+        display: block;
+        margin-bottom: 18px;
+      }
+      .modal-divider {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.08);
+        margin-bottom: 18px;
+      }
+      .modal-narrative p {
+        font-size: 0.88rem;
+        line-height: 1.8;
+        color: #333;
+        margin-bottom: 14px;
+      }
+      .modal-narrative p:last-child {
+        margin-bottom: 0;
+      }
+      .modal-source {
+        margin-top: 20px;
+        font-size: 0.62rem;
+        color: #bbb;
+        font-style: italic;
+      }
+
+      /* ── Bottom note ── */
+      .footer-note {
+        text-align: center;
+        padding: 40px 20px 10px;
+        font-size: 0.72rem;
+        color: #aaa;
+        font-style: italic;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .footer-autor {
+        text-align: center;
+        padding: 0px 20px 50px;
+        font-size: 0.72rem;
+        color: #aaa;
+        font-style: italic;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Historia de las Escuelas Hermenéuticas</h1>
+      <p class="subtitle">
+        Según Bernard Ramm — Haga clic en una escuela para ver personas,
+        principios hermenéutico y problema.
+      </p>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #b03a2e"></div>
+          Alegóricas
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #1a5276"></div>
+          Literales
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #1d7a40"></div>
+          Devocionales
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #6c3483"></div>
+          Críticas / Modernistas
+        </div>
+      </div>
+    </header>
+
+    <div id="modal-overlay">
+      <div id="modal-box">
+        <button id="modal-close" aria-label="Cerrar">✕</button>
+        <span class="modal-tag" id="modal-tag"></span>
+        <div class="modal-title" id="modal-title"></div>
+        <span class="modal-period" id="modal-period"></span>
+        <div class="modal-divider"></div>
+        <div class="modal-narrative" id="modal-narrative"></div>
+        <p class="modal-source">
+          Basado en «Interpretación Bíblica Protestante» de Bernard Ramm
+        </p>
+      </div>
+    </div>
+
+    <div id="year-badge">500 a.C.</div>
+    <div id="timeline"></div>
+    <p class="footer-note">
+      Basado en «Interpretación Bíblica Protestante» de Bernard Ramm · Las
+      escuelas se ordenan cronológicamente por su período de inicio
+    </p>
+    <p class="footer-autor">Victor Sada</p>
+    <script>
+      const YEAR_START = -500;
+      const YEAR_END = 2026;
+      const TOTAL_PX = 5400;
+      const TOP_PAD = 70;
+
+      function yearToPx(y) {
+        return (
+          TOP_PAD + ((y - YEAR_START) / (YEAR_END - YEAR_START)) * TOTAL_PX
+        );
+      }
+
+      function fmtYear(y) {
+        if (y <= -500) return "500 a.C.";
+        if (y < 0) return `${Math.abs(y)} a.C.`;
+        if (y === 0) return "Año 0 (Cristo)";
+        if (y >= 2026) return "Hoy";
+        return `${y} d.C.`;
+      }
+
+      function hexToRgba(hex, a) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},${a})`;
+      }
+
+      const CATS = {
+        alegóricas: { dark: "#B03A2E", light: "#FADBD8", label: "Alegórica" },
+        literales: { dark: "#1A5276", light: "#D6EAF8", label: "Literal" },
+        devocionales: {
+          dark: "#1D7A40",
+          light: "#D5F5E3",
+          label: "Devocional",
+        },
+        modernistas: {
+          dark: "#6C3483",
+          light: "#E8DAEF",
+          label: "Crítica / Modernista",
+        },
+      };
+
+      const SCHOOLS = [
+        {
+          name: "El Comienzo (Esdras)",
+          cat: "literales",
+          start: -500,
+          end: -400,
+          persons: "Esdras",
+          principle:
+            "Explicar la Palabra en arameo (Neh. 8:1-8). Interpretación literal y normal. Primera instancia formal de hermenéutica bíblica.",
+          problem: "Se deterioró en hiperliteralismo.",
+          narrative: `Cuando el pueblo judío regresó del exilio babilónico después de setenta años en Babilonia, algo devastador había ocurrido: muchos habían olvidado su propio idioma. El hebreo, la lengua en que Dios había hablado a Moisés, ya no era el idioma de la casa ni del mercado. El arameo lo había reemplazado en la vida cotidiana.\n\nCuando Esdras se paró ante la Puerta del Agua en Jerusalén y leyó la Torá al pueblo reunido (Nehemías 8:1–8), enfrentó un problema completamente nuevo: mucha gente escuchaba palabras que no comprendía. Los levitas tuvieron que caminar entre la multitud traduciendo, explicando, para que entendieran lo que se leía. Ese momento es, según Bernard Ramm, la primera instancia documentada de hermenéutica bíblica en la historia.\n\nDel exilio emergió el judaísmo tal como lo conocemos: con sus sinagogas (porque ya no había templo), sus rabinos y su obsesión por el texto escrito. La tragedia del exilio convirtió a un pueblo de rituales en un pueblo del libro. Y esa conversión exigió, por primera vez, un método para leerlo.`,
+        },
+        {
+          name: "Literalismo Judío",
+          cat: "literales",
+          start: -400,
+          end: -100,
+          persons: "Hillel, Caraítas, Cabalistas",
+          principle:
+            "Gran importancia a gramática y ortografía. 7 reglas de Hillel: contexto, comparación, pasaje claro sobre oscuro. Creyeron que Dios habló para ser entendido.",
+          problem:
+            "Derivó en hiperliteralismo. Ej: «Moisés no tenía esposa etíope sino hermosa, porque Kushith=736=hermosa en gematría».",
+          narrative: `La crisis del exilio generó en los judíos una devoción casi obsesiva por la letra de la Ley. Si alguna vez habían podido perder su tierra, su templo y su idioma, al menos nadie podría quitarles el texto sagrado. Cada letra, cada acento, cada punto de la Torá se volvió precioso hasta lo sagrado.\n\nHillel, el gran rabino del siglo I a.C., sistematizó esta devoción en siete reglas de interpretación que eran, en su origen, notablemente racionales: comparar pasajes similares, dar preferencia al texto claro sobre el oscuro, interpretar según el contexto. Sus principios eran sanos. Pero la veneración derivó en algo diferente. Los cabalistas comenzaron a asignar valores numéricos a cada letra (gematría) y a extraer significados ocultos comparando palabras con el mismo valor numérico.\n\nEl texto se convirtió en un código cifrado. Algunos llegaron a afirmar que "Moisés no tenía una esposa etíope, sino hermosa" porque la palabra kushit en hebreo convertida en número equivalía a "hermosa". Un rabino llegó a enseñar que el propio Dios estudiaba las letras de la Ley tres horas al día. La devoción se había transformado en magia textual.`,
+        },
+        {
+          name: "Alegoría Griega",
+          cat: "alegóricas",
+          start: -300,
+          end: -200,
+          persons: "Platón",
+          principle:
+            "Alegorizar los mitos de Homero para conciliarlos con la filosofía griega. El significado real (hyponoia) estaba oculto bajo la letra.",
+          problem:
+            "El método se expandió a Alejandría influyendo a judíos y cristianos. Ramm: «Permaneció inquebrantable 1500 años».",
+          narrative: `Los griegos del siglo V a.C. vivían con una contradicción incómoda. Homero era su Biblia: la Ilíada y la Odisea eran los textos fundacionales de su civilización, memorizados por los niños, citados por los filósofos, recitados en los festivales religiosos. Pero Homero describía a los dioses haciendo cosas terribles: Zeus engañaba a su esposa Hera, Afrodita manipulaba a los mortales, Ares disfrutaba de la sangre y el caos. Para Platón y los filósofos, esto era un escándalo moral. No podían rechazar a Homero —era demasiado central a su identidad— pero tampoco podían aceptar literalmente esas historias.\n\nLa solución la había intuido Teágenes de Regio hacia el 525 a.C.: alegorizar. Si la batalla entre dioses en el Monte Olimpo se interpretaba como una guerra de principios cósmicos —Apolo representaba el sol, Atenea la sabiduría, Ares la destrucción—, entonces Homero dejaba de ser vergonzoso y se convertía en profundo. El texto literal era una corteza; debajo latía el verdadero significado filosófico (hyponoia, "el pensamiento de abajo").\n\nEste método "elegante" y "sofisticado", inventado para salvar los mitos griegos de la vergüenza moral, demostraría ser uno de los instrumentos más peligrosos en toda la historia de la interpretación. Ramm escribe que permaneció "inquebrantable" durante 1500 años.`,
+        },
+        {
+          name: "Alegoría Judía",
+          cat: "alegóricas",
+          start: -160,
+          end: 54,
+          persons: "Aristóbulo (160 a.C.), Filón (~20 a.C.-54 d.C.)",
+          principle:
+            "Reconciliar fe hebrea y filosofía griega con 20 reglas para alegorizar. Ley de doble aplicación: cielo=mente, tierra=sensación. Lo literal era para inmaduros; lo alegórico para maduros.",
+          problem:
+            "Pervirtió el A.T. Ej: el viaje de Abraham a Palestina = «un filósofo estoico que deja el entendimiento sensorial».",
+          narrative: `Filón de Alejandría era un judío del siglo I que vivía en el corazón del mundo intelectual griego. Alejandría era entonces la ciudad más cosmopolita del mundo conocido: su biblioteca era la más grande del mundo antiguo, y sus calles estaban llenas de filósofos, matemáticos, poetas y teólogos de todas las tradiciones.\n\nFilón amaba tanto a Moisés como a Platón, y creía que no podían contradecirse. Si la Torá era la Palabra de Dios y la filosofía platónica era la verdad más alta que la razón podía alcanzar, debían decir lo mismo. Su solución fue la alegoría: detrás de cada historia del Génesis se escondía una verdad filosófica. El viaje de Abraham hacia Palestina significaba "un filósofo estoico que abandona el entendimiento sensorial". El Jardín del Edén representaba la mente humana. Lo literal era para los creyentes inmaduros; lo alegórico, para los maduros.\n\nParadójicamente, Filón tuvo poca influencia en el judaísmo posterior —los rabinos lo ignoraron casi por completo—, pero fue adoptado con entusiasmo por la Iglesia cristiana naciente. Fue el puente más importante que llevó la alegoría griega al interior del pensamiento bíblico cristiano.`,
+        },
+        {
+          name: "Alegoría Cristiana",
+          cat: "alegóricas",
+          start: 0,
+          end: 500,
+          persons: "Clemente, Orígenes, Jerónimo, Agustín",
+          principle:
+            "Hacer del A.T. un documento cristiano. Orígenes: «La Biblia es una gran alegoría, un tremendo sacramento en que cada detalle es simbólico.» Lo literal = para laicos; lo espiritual = verdad real. Agustín: si lo literal genera disensión, se alegoriza.",
+          problem:
+            "Condujo al absolutismo eclesiástico. «La Biblia tratada alegóricamente se convierte en masilla en manos del exégeta».",
+          narrative: `Los primeros intérpretes cristianos enfrentaban un problema urgente: necesitaban demostrar que el Antiguo Testamento era un libro cristiano. Si las Escrituras hebreas no apuntaban a Jesús, la fe cristiana no tenía raíces. La alegoría era la herramienta perfecta para esta misión.\n\nOrígenes de Alejandría (185-254 d.C.) fue el genio y el desbordamiento de esta tendencia. Era un hombre de fe que leía la Biblia en hebreo y en griego y conocía a Platón tan bien como a Pablo. Pero convirtió toda la Escritura en una alegoría cósmica: el sentido literal era para los laicos inmaduros; el sentido espiritual era la verdad real. Todo lo que sonara demasiado humano o demasiado judío en el texto simplemente se alegorizaba.\n\nAgustín de Hipona llegó a la fe precisamente a través de la alegoría. De joven, el Antiguo Testamento le parecía barbarísimo —demasiado violento, demasiado primitivo— y lo rechazaba. Fue el obispo Ambrosio quien le mostró que todo eso tenía un significado espiritual más profundo. Su regla quedó formulada con elegancia: si el sentido literal genera divisiones o parece indigno de Dios, alegoricemos. El problema era que "indigno de Dios" lo decidía el intérprete. Como escribió Ramm: «La Biblia tratada alegóricamente se convierte en masilla en manos del exégeta.»`,
+        },
+        {
+          name: "Escuela de Antioquía",
+          cat: "literales",
+          start: 300,
+          end: 500,
+          persons: "Crisóstomo",
+          principle:
+            "Balance entre alegoría de Alejandría e hiperliteralismo judío. Literal = natural/normal (no letrismo). Unidad de la Biblia es cristológica. Admitieron progreso de la revelación.",
+          problem:
+            "A veces usaron alegoría. Fue totalmente aplastada por la ortodoxia católica.",
+          narrative: `En el siglo IV, mientras Alejandría producía alegoristas cada vez más elaborados, a 500 kilómetros al noreste, en Antioquía de Siria, un grupo de teólogos construía una alternativa radicalmente diferente. Algunos historiadores la llaman "la primera escuela protestante de hermenéutica", y no sin razón.\n\nJuan Crisóstomo ("boca de oro") era su figura más brillante. Predicador extraordinario que llenaba las iglesias de Antioquía y luego de Constantinopla. Crisóstomo creía que la Escritura debía entenderse como hablan los seres humanos: con lenguaje literal cuando es literal, con metáforas cuando usa metáforas, con poesía cuando es poética. "El ojo del Señor está sobre ti" no significaba que Dios tuviera un ojo físico —eso sería letrismo—, sino que Dios omnisciente te conoce. La diferencia entre letrismo y lectura literal inteligente era su gran aporte.\n\nLa escuela fue aplastada. Sus representantes principales fueron asociados con la herejía nestoriana y, cuando esa fue condenada, el método antioqueno cayó con ella. Ramm escribe con tristeza: «Si no hubiera sido aplastada por la ortodoxia, el curso entero de la historia de la iglesia podría haber sido diferente.» Habría que esperar mil años para que sus ideas resurgieran en la Reforma.`,
+        },
+        {
+          name: "Alegoría Católica",
+          cat: "alegóricas",
+          start: 500,
+          end: 2026,
+          persons: "Gregorio el Grande",
+          principle:
+            "4 sentidos: histórico, moral, alegórico y anagógico. La tradición no escrita de la iglesia aclara las Escrituras. El intérprete obedece lo que la iglesia haya dicho.",
+          problem:
+            "Eiségesis institucionalizada. Círculo cerrado: tradición y Escritura se aclaran mutuamente, excluyendo interpretación independiente.",
+          narrative: `Con la caída del Imperio Romano y el ascenso de la Iglesia como institución organizadora de la civilización occidental, la interpretación alegórica se sistematizó y se institucionalizó. Gregorio el Grande (590-604 d.C.) la codificó en cuatro sentidos que se convirtieron en el método oficial de la exégesis medieval: el sentido histórico (qué pasó), el moral (cómo debo vivir), el alegórico (a qué verdad espiritual apunta) y el anagógico (qué dice sobre las realidades eternas).\n\nEl sistema era elegante y comprehensivo. Un mismo versículo podía leerse simultáneamente en cuatro niveles. "Que haya luz" significaba históricamente la creación, moralmente la obligación de huir de la ignorancia, alegóricamente que Cristo es la luz del mundo, y anagógicamente que la Iglesia anticipa la gloria celestial.\n\nPero había una trampa estructural: la Iglesia era la intérprete oficial y el creyente común no podía entender la Escritura sin mediación eclesiástica. Lo que comenzó como un método hermenéutico se convirtió en un sistema de control. La tradición no escrita de la Iglesia "aclaraba" las Escrituras, y la Escritura "confirmaba" la tradición. Era un círculo perfecto y cerrado, imposible de desafiar desde adentro.`,
+        },
+        {
+          name: "Los Victorinos",
+          cat: "literales",
+          start: 1047,
+          end: 1141,
+          persons: "Hugo, Ricardo y Andrés de San Víctor (París)",
+          principle:
+            "Estudiar artes, historia y geografía para interpretar literalmente primero. La alegoría solo se aplica después, basada en doctrina establecida por la literal.",
+          problem: "Hicieron aplicaciones místicas y alegóricas.",
+          narrative: `En el corazón del París del siglo XII, en la Abadía de San Víctor, un grupo de monjes decidieron subvertir silenciosamente la tradición alegórica dominante. Su método era escandalosamente sencillo: leer el texto primero tal como decía.\n\nHugo de San Víctor, el más influyente de ellos, insistía en que sin fundamento histórico y literal, toda interpretación alegórica era edificada sobre arena. Antes de preguntarse qué "significaba espiritualmente" un texto, había que entender qué decía literalmente: su contexto histórico, su geografía, su gramática. Para eso, los Victorinos hacían algo inusual para la época: consultaban a rabinos judíos del vecindario y estudiaban la tradición hebrea directamente.\n\nEra una herejía metodológica silenciosa. En un siglo donde la alegoría era el idioma oficial de la teología, decir "primero entiende el texto literal" resultaba casi subversivo. Los Victorinos no rechazaban la alegoría —también la practicaban—, pero insistían en que debía venir después, fundada en la interpretación literal, no en lugar de ella. Plantaron una semilla que germinaría tres siglos después con la Reforma protestante.`,
+        },
+        {
+          name: "Místicos Medievales",
+          cat: "devocionales",
+          start: 1000,
+          end: 1500,
+          persons: "Bernardo de Clairvaux",
+          principle:
+            "Interpretar la Biblia para llegar a experiencia mística. Libro central: Cantares (relación de amor entre Dios y el místico). Esperaban revelación directa de Dios.",
+          problem:
+            "Exceso de misticismo. La experiencia pasó por encima de la interpretación.",
+          narrative: `Bernardo de Claraval era uno de los hombres más influyentes de Europa en el siglo XII: reformó el monacato cisterciense, predicó la Segunda Cruzada, arbitró conflictos entre reyes. Pero su corazón estaba en otra parte: en la experiencia directa de Dios.\n\nPara Bernardo y los místicos medievales, la Escritura era fundamentalmente un medio, no un fin. No se leía la Biblia para entender proposiciones teológicas, sino para encontrarse con Dios. El libro predilecto de toda esta tradición era el Cantar de los Cantares, que leían como una descripción de la relación de amor entre el alma y Dios: "Bésame con los besos de tu boca" no era un poema de amor humano, sino la voz del alma que anhela la intimidad divina.\n\nLo que hacía problemática esta escuela no era su anhelo de experiencia espiritual —que podría ser genuino—, sino que la experiencia terminaba siendo el criterio para interpretar el texto, en lugar de al revés. Si una lectura producía calor espiritual, era correcta. Si no, se buscaba otra. El texto se volvía un espejo de las experiencias interiores del intérprete, en lugar de una voz independiente que lo confrontara.`,
+        },
+        {
+          name: "Los Reformistas",
+          cat: "literales",
+          start: 1400,
+          end: 1600,
+          persons: "Lutero, Calvino, Zwinglio",
+          principle:
+            "Biblia = autoridad suprema (sobre la iglesia). Interpretación literal e histórico-gramatical. «Escritura interpreta Escritura.» El creyente puede entender la Palabra sin la iglesia.",
+          problem:
+            "Principio cristológico demasiado fuerte. Calvino: «Es responsabilidad del intérprete dejar al autor hablar».",
+          narrative: `Martín Lutero había sido monje agustino, había torturado su conciencia en el confesionario, había buscado a Dios en la mortificación y en los sacramentos, y no lo había encontrado. Cuando finalmente leyó "el justo por la fe vivirá" (Romanos 1:17) y lo entendió en su sentido literal y gramatical —sin capas de tradición eclesiástica encima—, su vida se transformó.\n\nPor eso Lutero odiaba la alegoría con una ferocidad que sorprendía incluso a sus contemporáneos. La llamaba "inmundicia", "escoria", "trapos viejos". La comparó con "un juego de monos". La razón era personal y política: la alegoría era la herramienta que la iglesia había usado durante siglos para extraer del texto lo que quería. Si cada pasaje podía "significar" algo diferente de lo que decía, entonces la Escritura nunca podría desafiar realmente a la institución. Y Lutero necesitaba que la Escritura lo desafiara todo. Su lema fue: «Pido la Escritura y Eck me ofrece a los Padres. Pido el sol y me muestra sus linternas.»\n\nCalvino era más frío y más científico. Jurista de formación, aplicó al texto bíblico la misma disciplina que un buen abogado aplica a los documentos. Sus comentarios bíblicos siguen siendo utilizados hoy, cinco siglos después. Un estudioso los describió como textos que aún "no tienen igual" en claridad y profundidad.`,
+        },
+        {
+          name: "Post-Reforma",
+          cat: "literales",
+          start: 1600,
+          end: 1800,
+          persons: "Puritanos, Ernesti, Melanchthon",
+          principle:
+            "Exégesis gramatical tiene prioridad sobre dogmática. Ernesti (1761): «Principios de Interpretación del N.T.»",
+          problem:
+            "Demasiado énfasis en credos. Interpretación basada en confesiones más que en la Escritura.",
+          narrative: `Los herederos de la Reforma hicieron algo que los Reformadores nunca hubieran querido: convirtieron la fe viva en sistema rígido. El siglo XVII vio surgir una teología protestante ortodoxa tan obsesionada con los credos y los catecismos, tan dominada por la polémica anticatólica, que algunos la describieron con una frase lapidaria: "la triple maldición del confesionalismo tiránico, los sistemas exorbitantes y la amargura contenciosa." Los teólogos leían la Biblia, según Farrar, "bajo el resplandor antinatural del odio teológico".\n\nJohan August Ernesti fue quien en 1761 pronunció lo que entonces sonaba casi revolucionario: la gramática tiene prioridad sobre el dogma. Para interpretar el Nuevo Testamento, dijo, un erudito necesita las mismas herramientas que usa para interpretar a Cicerón o a Sófocles: filología, historia, contexto. El sentido gramatical de una frase no puede ser violado por las necesidades de ningún sistema confesional.\n\nFue un paso pequeño pero decisivo. Ernesti no era un rebelde —era un erudito cuidadoso—, pero su insistencia en que el texto manda sentó las bases de la hermenéutica histórico-gramatical moderna que los evangelicales utilizan hasta hoy.`,
+        },
+        {
+          name: "Pietismo",
+          cat: "devocionales",
+          start: 1600,
+          end: 1800,
+          persons: "Spener, Francke, Bengel",
+          principle:
+            "La Biblia es el instrumento de Dios para producir verdadera espiritualidad. Leer toda la Biblia frecuentemente. Solo los regenerados entienden la Palabra.",
+          problem:
+            "La aplicación devocional llegó a ser más importante que la interpretación.",
+          narrative: `Philipp Jakob Spener era pastor luterano en Frankfurt y estaba desesperado. Sus feligreses podían recitar el catecismo de memoria, sabían de qué lado estaba Lutero en la disputa sobre la Cena del Señor, asistían a los cultos con puntualidad —y eran personas espiritualmente frías, sin ninguna transformación visible. La teología había triunfado; la fe parecía muerta.\n\nEn 1675 publicó Pia Desideria ("Deseos Piadosos"), un pequeño libro que encendió Europa. Propuso algo radical para la época: reuniones pequeñas de creyentes que leyeran la Biblia juntos, no para debatir doctrinas, sino para alimentarse. Llamó a estas reuniones Collegia Pietatis. El nombre dio origen al movimiento.\n\nEl pietismo generó una cascada de consecuencias: influyó en los Moravos, en John Wesley, en el metodismo, y a través de Wesley, en buena parte del evangelicalismo anglosajón. Johann Albrecht Bengel, el tercer gran pietista, fue tan meticuloso con el texto griego del Nuevo Testamento que Farrar lo llamó "el heredero de todo lo mejor del pietismo". Sus notas, publicadas como Gnomon, son tan densas y penetrantes que los comentaristas siguen citándolas doscientos años después.`,
+        },
+        {
+          name: "Liberal / Modernista",
+          cat: "modernistas",
+          start: 1750,
+          end: 1900,
+          persons: "Fosdick, Harnack",
+          principle:
+            "La mentalidad moderna y la razón humana guían la interpretación. Rechazan milagros. Nueva definición: «inspiración» = habilidad de inspirar experiencia religiosa.",
+          problem:
+            "Exaltan el razonamiento del hombre sobre la revelación de Dios. Rechazan grandes partes de la Biblia.",
+          narrative: `El siglo XVIII trajo la Ilustración: la razón humana como árbitro supremo de la realidad. Newton había descifrado el universo con matemáticas. Voltaire demolía supersticiones con epígramas. Y Darwin, un siglo después, propondría que el origen de la vida podía explicarse sin recurrir a un creador. ¿Qué hacer entonces con una Biblia llena de milagros, de relatos de creación y de afirmaciones sobrenaturales?\n\nLa teología liberal encontró una respuesta elegante: reinterpretar todo. Los milagros eran leyendas piadosas que expresaban verdades espirituales. La inspiración ya no significaba que Dios habló; significaba que ciertos textos tienen poder de inspirar experiencia religiosa. "El lado oscuro del proceso es el descubrimiento humano; el lado superior es la revelación de Dios", formuló Fosdick.\n\nAdolf von Harnack aplicó la metodología del historiador al Nuevo Testamento en su famosa obra ¿Qué es el Cristianismo?: Jesús fue un gran maestro moral, pero siglos de especulación griega lo habían transformado en el extraño Dios-hombre de los credos. El trabajo del crítico bíblico era excavar a través de esas capas de acreción teológica hasta encontrar al "Jesús histórico". El problema, que Albert Schweitzer señaló con brillantez, era que cada investigador encontraba un Jesús que se le parecía sorprendentemente.`,
+        },
+        {
+          name: "Énfasis Moderno",
+          cat: "devocionales",
+          start: 1800,
+          end: 1960,
+          persons: "Oliver Greene, Watchman Nee",
+          principle:
+            "Énfasis en lo devocional y práctico. La Palabra debe aplicarse a la vida diaria. Necesario para la predicación.",
+          problem:
+            "Alegorizan para encontrar aplicaciones. La aplicación se vuelve más importante que la interpretación correcta.",
+          narrative: `La tradición devocional —leer la Biblia para alimentarse espiritualmente— es probablemente la más popular de todas las épocas. La mayoría de los creyentes han leído las Escrituras así: buscando consuelo, dirección para su vida, una palabra de Dios para ese día particular. Watchman Nee en China y Oliver Greene en Estados Unidos representan esta corriente en el siglo XX. Es, en muchos sentidos, la hermenéutica de la gente común.\n\nEl peligro, que Ramm señala con precisión quirúrgica, no está en la devoción misma sino en convertirla en el único método interpretativo. Cuando la pregunta principal es "¿qué me habla este texto a mí hoy?", el texto pierde su voz propia y se convierte en un espejo. Un calvinista puede leer el Salmo 23 y ver la seguridad eterna del creyente; un arminiano puede leerlo y ver una promesa condicional. Ambos están leyendo sus propias convicciones en el texto, no leyendo el texto.\n\nRamm lo dice sin rodeos: la aplicación devocional puede ser "un sustituto de los estudios bíblicos exegéticos y doctrinales." Los tendones doctrinales y los huesos exegéticos son necesarios para la salud espiritual —la devoción sin ellos produce un creyente bien intencionado pero fácilmente manipulable.`,
+        },
+        {
+          name: "Neo-Ortodoxia",
+          cat: "modernistas",
+          start: 1918,
+          end: 2026,
+          persons: "Barth, Brunner, Bultmann",
+          principle:
+            "Jesucristo es la Palabra de Dios. La revelación es un encuentro subjetivo. No aceptan infalibilidad de la Biblia. Solo lo que tiene testimonio de Cristo tiene autoridad.",
+          problem: "Solo partes de la Biblia son consideradas importantes.",
+          narrative: `La Primera Guerra Mundial destrozó muchas ilusiones, pero quizás ninguna tan completamente como la ilusión del progreso humano. La teología liberal había apostado por esa ilusión: la humanidad avanzaba hacia una civilización más iluminada, más ética, más cercana a Dios. Entonces llegaron las trincheras, el gas mostaza y diez millones de muertos.\n\nKarl Barth era un joven pastor suizo cuando la guerra comenzó. Noventa y tres intelectuales alemanes firmaron un manifiesto apoyando la política militar del Kaiser —entre ellos, los maestros que Barth había admirado. Fue un quiebre total. En 1919 publicó su comentario a Romanos, que un teólogo describió como "una bomba cayendo en un patio de recreo de teólogos". Barth y sus compañeros (Brunner, los Niebuhr) rechazaban el liberalismo sin regresar al fundamentalismo.\n\nLa Biblia no era verbalmente inerrante para ellos, pero tampoco era meramente literatura religiosa. Era testimonio: el medio a través del cual Dios puede encontrarse con el ser humano en un encuentro vivo y presente. El principio cristológico era su ancla: la Palabra de Dios para el hombre es Jesucristo, y solo las partes de la Biblia que dan testimonio de esa Palabra son plenamente vinculantes. El problema era que decidir qué partes lo hacían quedaba en manos del lector.`,
+        },
+        {
+          name: "Nueva Hermenéutica",
+          cat: "modernistas",
+          start: 1950,
+          end: 2026,
+          persons: "Rudolf Bultmann",
+          principle:
+            "Todo lo que no es científico es falso. La Biblia llena de mitos que expresan verdades existenciales.",
+          problem:
+            "Sin autoridad objetiva. La hermenéutica es cómo el intérprete entiende su propia experiencia.",
+          narrative: `Rudolf Bultmann era el hijo más radical de la neo-ortodoxia y al mismo tiempo su sepulturero. Teólogo alemán del Nuevo Testamento, dominó la academia bíblica europea de los años 40 a los 60 con una propuesta que llamó "desmitologización" (Entmythologisierung).\n\nEl mundo del siglo I, argumentaba Bultmann, era un mundo pre-científico habitado por demonios, milagros y apocalipsis. Los primeros cristianos expresaron su fe en ese lenguaje mítico porque era el único que conocían. Pero ese lenguaje es inaccesible para el hombre moderno, que vive en un universo explicado por la física y la biología. El trabajo del teólogo no era creer los mitos, sino desmitologizarlos: descubrir la verdad existencial que el mito intentaba expresar. ¿La resurrección? No un evento histórico verificable, sino la experiencia subjetiva de que la muerte no tiene la última palabra. ¿El diablo? No un ser objetivo, sino la experiencia de ser dominado por fuerzas que no controlamos.\n\nEl problema de fondo que Bultmann nunca logró resolver era el siguiente: si el intérprete es quien decide qué es "mítico" y qué es "verdad existencial", la Escritura ya no tiene autoridad sobre el intérprete. La hermenéutica deja de tratar de cómo entender el texto, y pasa a tratar de cómo el intérprete entiende su propia experiencia. El círculo se cierra sobre sí mismo, sin ningún punto de apoyo externo.`,
+        },
+      ];
+
+      // Sort and assign sides
+      const sorted = [...SCHOOLS].sort(
+        (a, b) => a.start - b.start || a.name.localeCompare(b.name),
+      );
+      sorted.forEach((s, i) => (s.side = i % 2 === 0 ? "left" : "right"));
+
+      // Build DOM
+      const wrapper = document.getElementById("timeline");
+      const totalH = yearToPx(YEAR_END) + 100;
+      wrapper.style.height = totalH + "px";
+
+      // Axis line
+      const axisEl = document.createElement("div");
+      axisEl.className = "axis-line";
+      axisEl.style.height = totalH - 20 + "px";
+      wrapper.appendChild(axisEl);
+
+      // Subtle era zone backgrounds
+      const ERA_ZONES = [
+        { start: -500, end: 0, color: "#E8DDD0", label: "" },
+        { start: 0, end: 500, color: "#D8E8F0", label: "" },
+        { start: 500, end: 1500, color: "#E0DDED", label: "" },
+        { start: 1500, end: 2026, color: "#D8EDE0", label: "" },
+      ];
+      ERA_ZONES.forEach((z) => {
+        const el = document.createElement("div");
+        el.className = "era-zone";
+        el.style.cssText = `top:${yearToPx(z.start)}px; height:${yearToPx(z.end) - yearToPx(z.start)}px; background:${z.color}; opacity:0.2;`;
+        wrapper.appendChild(el);
+      });
+
+      // Era duration bars
+      SCHOOLS.forEach((s) => {
+        const color = CATS[s.cat].dark;
+        const bar = document.createElement("div");
+        bar.className = "era-bar";
+        bar.title = `${s.name}: ${fmtYear(s.start)} – ${fmtYear(s.end)}`;
+        bar.style.cssText = `top:${yearToPx(s.start)}px; height:${yearToPx(s.end) - yearToPx(s.start)}px; background:${color};`;
+        wrapper.appendChild(bar);
+      });
+
+      // Year markers
+      const KEY_YEARS = [
+        -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 700, 1000,
+        1100, 1200, 1300, 1400, 1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950,
+        2000, 2026,
+      ];
+      KEY_YEARS.forEach((y) => {
+        const isMajor = y % 500 === 0 || y === 0 || y === 2026;
+        const isMedium = y % 100 === 0 && !isMajor;
+        const py = yearToPx(y);
+
+        const m = document.createElement("div");
+        m.className = "yr-marker";
+        m.style.top = py + "px";
+
+        const tick = document.createElement("div");
+        tick.className = "yr-tick";
+        tick.style.cssText = `
+    width:  ${isMajor ? 24 : isMedium ? 16 : 10}px;
+    height: ${isMajor ? 2 : 1}px;
+    background: ${y === 2026 ? "#C0392B" : y === 0 ? "#2980B9" : isMajor ? "#4A7FA5" : "#999"};
+  `;
+
+        const lbl = document.createElement("div");
+        lbl.className = "yr-label";
+        let labelText =
+          y < 0
+            ? `${Math.abs(y)} a.C.`
+            : y === 0
+              ? "✦ Año 0"
+              : y === 2026
+                ? "✦ HOY"
+                : `${y}`;
+        lbl.textContent = labelText;
+        lbl.style.cssText = `
+    font-weight: ${isMajor ? 700 : 400};
+    color: ${y === 2026 ? "#C0392B" : y === 0 ? "#2980B9" : isMajor ? "#666" : "#AAA"};
+    font-size: ${isMajor ? "0.64rem" : "0.55rem"};
+  `;
+
+        m.appendChild(tick);
+        m.appendChild(lbl);
+        wrapper.appendChild(m);
+      });
+
+      // School cards
+      sorted.forEach((school) => {
+        const { dark, light, label } = CATS[school.cat];
+        const py = yearToPx(school.start);
+        const card = document.createElement("div");
+        card.className = `school-card ${school.side}`;
+        card.style.top = py - 14 + "px";
+
+        // Connector
+        const conn = document.createElement("div");
+        conn.className = "connector";
+        conn.style.background = dark;
+
+        // Node dot
+        const dot = document.createElement("div");
+        dot.className = "node-dot";
+        dot.style.borderColor = dark;
+
+        // Card box
+        const box = document.createElement("div");
+        box.className = "card-box";
+
+        // Colored accent border (inner side, facing the timeline)
+        if (school.side === "right") {
+          box.style.borderLeft = `4px solid ${dark}`;
+        } else {
+          box.style.borderRight = `4px solid ${dark}`;
+        }
+
+        const personChips = school.persons
+          .split(/,|;/)
+          .map((p) => p.trim())
+          .filter(Boolean)
+          .map(
+            (p) =>
+              `<span class="person-chip" style="background:${hexToRgba(light, 0.7)};color:${dark}">${p}</span>`,
+          )
+          .join("");
+
+        box.innerHTML = `
+    <div class="card-tag" style="color:${dark}">${label}<span class="toggle-arrow">▾</span></div>
+    <div class="card-title">${school.name}</div>
+    <div class="card-period">${fmtYear(school.start)} — ${fmtYear(school.end)}</div>
+    <div class="card-details">
+      <div class="detail-divider"></div>
+      <div class="person-chips-row">${personChips}</div>
+      <div class="detail-prose">${school.principle}</div>
+      <div class="detail-problem" style="border-color:${dark};background:${hexToRgba(light, 0.35)}">${school.problem}</div>
+      <button class="ver-mas-btn" style="color:${dark}">Leer historia completa →</button>
+    </div>
+  `;
+
+        box.addEventListener("click", (e) => {
+          if (e.target.classList.contains("ver-mas-btn")) return;
+          const wasOpen = box.classList.contains("open");
+          box.classList.toggle("open");
+          box.style.background = wasOpen ? "#fff" : hexToRgba(light, 0.45);
+        });
+
+        box.querySelector(".ver-mas-btn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          openModal(school);
+        });
+
+        card.appendChild(conn);
+        card.appendChild(dot);
+        card.appendChild(box);
+        wrapper.appendChild(card);
+      });
+
+      // Modal logic
+      const modalOverlay = document.getElementById("modal-overlay");
+      const modalBox = document.getElementById("modal-box");
+      const modalClose = document.getElementById("modal-close");
+
+      function openModal(school) {
+        const { dark, light, label } = CATS[school.cat];
+        document.getElementById("modal-tag").textContent = label;
+        document.getElementById("modal-tag").style.color = dark;
+        document.getElementById("modal-title").textContent = school.name;
+        document.getElementById("modal-period").textContent =
+          `${fmtYear(school.start)} — ${fmtYear(school.end)}`;
+        modalBox.style.borderLeftColor = dark;
+
+        const narrativeEl = document.getElementById("modal-narrative");
+        narrativeEl.innerHTML = school.narrative
+          .split("\n\n")
+          .map((p) => `<p>${p.trim()}</p>`)
+          .join("");
+
+        modalOverlay.classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      modalClose.addEventListener("click", closeModal);
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) closeModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      // Floating year badge updates on scroll
+      const badge = document.getElementById("year-badge");
+      window.addEventListener(
+        "scroll",
+        () => {
+          const wrapperTop =
+            wrapper.getBoundingClientRect().top + window.scrollY + TOP_PAD;
+          const relScroll = Math.max(
+            0,
+            window.scrollY + window.innerHeight * 0.45 - wrapperTop,
+          );
+          const progress = Math.min(1, relScroll / TOTAL_PX);
+          const currentY = Math.round(
+            YEAR_START + progress * (YEAR_END - YEAR_START),
+          );
+          badge.textContent =
+            currentY <= -500
+              ? "500 a.C."
+              : currentY < 0
+                ? `${Math.abs(currentY)} a.C.`
+                : currentY === 0
+                  ? "Año 0 (Cristo)"
+                  : currentY >= 2026
+                    ? "Hoy"
+                    : `${currentY} d.C.`;
+        },
+        { passive: true },
+      );
+    </script>
+  </body>
+</html>
